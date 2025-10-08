@@ -38,7 +38,7 @@ def create_page(title, industry, language, date_str, md_content=None):
 
 	notion = Notion(auth=NOTION_API_KEY, notion_version=NOTION_VERSION) # Define your env parameters
 
-	# is_latex_table = False means Markdown Table concerted to Notion Table instead of LaTeX Table
+	# is_latex_table = False means Markdown Table converted to Notion Table instead of LaTeX Table
 	children = md2notion_parse_md(md_content, is_latex_table=False) if md_content else []
 
 	properties = {
