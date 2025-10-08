@@ -358,7 +358,7 @@ def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
     # katex
     latex_block_pattern = re.compile(r'\$\$(.+?)\$\$', re.DOTALL)
     numbered_list_pattern_nested = r'^( *)(\d+)\. '
-    unordered_list_pattern_nested = r'^( *)(\-) '
+    unordered_list_pattern_nested = r'^( *)(\*|\-|\+) ' 
     heading_pattern = r'^(#+) '
 
     #indented_code_pattern = re.compile(r'^ {4}(.+)$', re.MULTILINE)
@@ -657,7 +657,7 @@ def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
         blocks.append(equation_block)
         
     # Add any remaining indented lines as a code block
-    if indented_code_accumulator:
+    """ if indented_code_accumulator:
         code_block = '\n'.join(indented_code_accumulator)
         blocks.append({
             "object": "block",
@@ -666,7 +666,7 @@ def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
                 "language": "plain text",
                 "rich_text": [{"type": "text", "text": {"content": code_block}}]
             }
-        })
+        }) """
         
     # Final cleanup step: Remove all top-level 'indent' properties before returning
     def _clean_blocks(blocks):
