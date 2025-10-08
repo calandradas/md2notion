@@ -252,55 +252,49 @@ def convert_markdown_table_to_latex(text):
     
 def convert_markdown_table_to_notion(md_table_string: str):
     """
-    Converts a Markdown table string into a Notion API Table Block object,
+    Converts a Markdown table string into a Notion API Table Block object, 
     mimicking the line-by-line processing of the LaTeX function.
     """
     import re # Assuming re module is available
-
+    
     # 1. Split and clean by line (split_column = text.split('\n'))
     split_column = [line.strip() for line in md_table_string.strip().split('\n') if line.strip()]
     if not split_column:
         return None
 
     has_header_row = False
-
+    
     # 2. Identify and remove the separator line (if re.match... pop(1))
-    # Check if the second line is a separator line (|---|:---|---:|)
+    # Check if the second line is the separator (|---|:---|---:|)
     if len(split_column) > 1 and re.match(r'^\|[\s:-]+\|[\s:-]+\|', split_column[1]):
         split_column.pop(1)
         # Determine that the first line is the header
         has_header_row = True
-
+        
     if not split_column:
         return None
 
     table_rows = []
-
+    
     # 3. Loop through each data row (for i, row in enumerate(split_column))
     for i, row in enumerate(split_column):
         # Emulating: extract cell content (re.findall(r'(?<=\|).*?(?=\|)', row))
         # Use a more robust method: remove leading/trailing '|', then split by unescaped '|'
-        # Note: Notion Table Cell doesn't distinguish header/body; it's marked in the parent block as has_header_row
-
+        # Note: Notion Table Cell doesn't distinguish header/body; has_header_row is marked in the parent block
+        
         cells = [cell.strip() for cell in re.split(r'(?<!\\)\|', row.strip('|'))]
-
+        
         # Filter empty cells to ensure structural integrity
         cells = [cell if cell else '' for cell in cells]
 
         notion_cells = []
         # 4. Format cell content (for j, cell in enumerate(modified_content))
         for cell_content in cells:
-            # Assume process_inline_formatting function exists to handle content, supporting links, bold, etc.
-            # This function is not defined here, so we'll use a placeholder structure.
-            # Replace with actual call if 'process_inline_formatting' is available.
-            
-            # Placeholder for rich_text_array (simple text without specific formatting)
-            rich_text_array = [{"type": "text", "text": {"content": cell_content}}]
-            # If a real process_inline_formatting function were available:
-            # rich_text_array = process_inline_formatting(cell_content) 
-            
+            # Use inline formatting function to process content, supporting links, bold, etc.
+            # Assuming process_inline_formatting function is defined elsewhere
+            rich_text_array = process_inline_formatting(cell_content)
             notion_cells.append(rich_text_array)
-
+        
         # Build Notion table_row block (Notion API row structure)
         row_block = {
             "object": "block",
@@ -314,8 +308,28 @@ def convert_markdown_table_to_notion(md_table_string: str):
     # 5. Calculate column count (count_column = len(split_column[0].split('|')))
     if not table_rows:
          return None
-
+         
     num_columns = len(table_rows[0]['table_row']['cells'])
+
+    # Define an empty Notion cell structure (for padding)
+    # Note: This must be consistent with the structure returned by process_inline_formatting in step 4
+    EMPTY_NOTION_CELL = [{"type": "text", "text": {"content": ""}}]
+
+    # Iterate through all rows, ensuring their cell count matches num_columns
+    for row_block in table_rows:
+        cells = row_block['table_row']['cells']
+        current_cell_count = len(cells)
+        
+        # If the current row has fewer cells, pad it
+        if current_cell_count < num_columns:
+            padding_needed = num_columns - current_cell_count
+            
+            # Pad with the required number of empty cells
+            for _ in range(padding_needed):
+                cells.append(EMPTY_NOTION_CELL)
+        elif current_cell_count > num_columns:
+            # If the row has too many cells, truncate it (This addresses the source of your previous error)
+            row_block['table_row']['cells'] = cells[:num_columns]
 
     # 6. Final encapsulation into Table Block (add_table = f"\\begin{array}...")
     final_table_block = {
@@ -323,11 +337,10 @@ def convert_markdown_table_to_notion(md_table_string: str):
         "type": "table",
         "table": {
             "table_width": num_columns,
-            "has_column_header": has_header_row, # Added based on common Notion structure
             "children": table_rows
         }
     }
-
+    
     return final_table_block
 
 def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
