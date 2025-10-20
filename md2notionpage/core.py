@@ -266,7 +266,7 @@ def convert_markdown_table_to_notion(md_table_string: str):
     
     # 2. Identify and remove the separator line (if re.match... pop(1))
     # Check if the second line is the separator (|---|:---|---:|)
-    if len(split_column) > 1 and re.match(r'^\|[\s:-]+\|[\s:-]+\|', split_column[1]):
+    if len(split_column) > 1 and re.match(r'^\|\s*(:?-{3,}:?\s*\|)(?:\s*:?-{3,}:?\s*\|)*\s*$', split_column[1]):
         split_column.pop(1)
         # Determine that the first line is the header
         has_header_row = True
@@ -401,9 +401,9 @@ def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
     for line in lines:
 
         # Check if the line is a table row (e.g., "| Header 1 | Header 2 |" or "| Content 1 | Content 2 |")
-        is_table_row = re.match(r'\|\s*[^-|]+\s*\|', line)
+        is_table_row = re.match(r'^\|\s*(.*)\s*\|', line)
         # Check if the line is a table delimiter (e.g., "|---|---|")
-        is_table_delimiter = re.match(r'\|\s*[-]+\s*\|\s*[-]+\s*\|', line)
+        is_table_delimiter = re.match(r'^\|\s*(:?-{3,}:?\s*\|)(?:\s*:?-{3,}:?\s*\|)*\s*$', line)
 
         # If we find table row or delimiter, add the line to the current table
         if is_table_row or is_table_delimiter:
