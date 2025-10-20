@@ -400,9 +400,9 @@ def parse_markdown_to_notion_blocks(markdown, is_latex_table=True):
     indented_code_accumulator = []
     for line in lines:
 
-        # Check if the line is a table row (e.g., "| Header 1 | Header 2 |" or "| Content 1 | Content 2 |")
+        # Check if the line is a table row (e.g., "| Header 1 | Header 2 | Header 3 |" or "| Content 1 | - | Content 3 |")
         is_table_row = re.match(r'^\|\s*(.*)\s*\|', line)
-        # Check if the line is a table delimiter (e.g., "|---|---|")
+        # Check if the line is a table delimiter (e.g., "|---|:---|---:|")
         is_table_delimiter = re.match(r'^\|\s*(:?-{3,}:?\s*\|)(?:\s*:?-{3,}:?\s*\|)*\s*$', line)
 
         # If we find table row or delimiter, add the line to the current table
