@@ -47,11 +47,15 @@ def create_page(title, industry, language, date_str, md_content=None):
 		 "Language": {"rich_text": [{"type": "text", "text": {"content": language}}]},
 		 "Create Date": {"rich_text": [{"type": "text", "text": {"content": date_str + "UTC"}}]}
 	} 
-	resp = notion.pages.create(
-	 	parent={"database_id": NOTION_DATABASE_ID},
-	 	properties=properties,
-	 	children=children
-	)
+	# 1 step create a plank notion page
+ 	page = self.notion.pages.create(
+ 		parent={"database_id": database_id},
+        properties=properties
+ 	)
+    # 2 step: append blocks max 100 per request 
+    for i in range(0, len(children), 100):
+        batch = children[i:i + 100]
+        self.notion.blocks.children.append(block_id=page["id"], children=batch)
 ```
 # Supported Markdown Features
 
